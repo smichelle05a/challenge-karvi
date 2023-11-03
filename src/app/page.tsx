@@ -18,6 +18,14 @@ const Home = () => {
       .then(res => res.json())
       .then(data => {
         setData(data)
+        setFilteredProducts(data.items)
+        setFilterOptions({
+          brand: data.availableFilters.brand.map(brand => brand.name),
+          city: data.availableFilters.city.map(city => city.name),
+          model: data.availableFilters.model.map(model => model.name),
+          version: data.availableFilters.version.map(version => version.name),
+          year: data.availableFilters.year.map(year => year.name),
+        })
         setError(null)
         setLoading(false)
       })
@@ -35,12 +43,13 @@ const Home = () => {
     version: [],
     year: [],
   })
+  const [filteredProducts, setFilteredProducts] = useState<{ [key: string]: any }[]>(data.items)
 
-  const [appliedFilters, setAppliedFilters] = useState<{ [key: string]: string }>({})
+  const [appliedFilters, setAppliedFilters] = useState<{ [key: string]: string | number | null }>({})
+  
+    const [sorting, setSorting] = useState<{ value: 'relevant' | 'asc' | 'desc'; text: string }>({ value: 'relevant', text: 'Más relevantes' })
 
   const [activeAccordion, setActiveAccordion] = useState<string | number>('')
-
-  const [sorting, setSorting] = useState<{ value: 'relevant' | 'asc' | 'desc'; text: string }>({ value: 'relevant', text: 'Más relevantes' })
 
   useEffect(() => {
     setFilterOptions({
@@ -49,19 +58,48 @@ const Home = () => {
       model: data.availableFilters.model.map(model => model.name),
       version: data.availableFilters.version.map(version => version.name),
       year: data.availableFilters.year.map(year => year.name),
-    })
+    }) 
   }, [data.availableFilters])
 
-  useEffect(() => {
-    setAppliedFilters(prev => ({
-      ...prev,
-      city: 'Campinas',
-      year: '2018',
-      brand: 'CHEVROLET',
-      model: 'ONIX',
-      version: '1.0 MPFI LT 8V FLEX 4P MANUAL',
-    }))
-  }, [])
+  //!BORRAR CONSOLE.LOG
+  console.log({ appliedFilters, filteredProducts, filterOptions })
+
+  const handleFilterClick = (key: string, value: string | number) => {
+    const filters = {
+      ...appliedFilters,
+      [key]: value,
+    }
+    setAppliedFilters(filters)
+    Object.keys(filters).forEach((filterKey) => {
+      onFilterProducts(filteredProducts, filterKey, filters[filterKey])
+    })
+  }
+
+  const handleRemoveFilter = (key: string) => {
+    const filters = {...appliedFilters}
+    delete filters[key]
+    setAppliedFilters(filters)
+
+    if(!Object.keys(filters).length) handleResetFilters()
+
+    Object.keys(filters).forEach((filterKey) => {
+      onFilterProducts(data.items, filterKey, filters[filterKey])
+    })
+  }
+
+  const handleResetFilters = () => {
+    setAppliedFilters({})
+    setFilterOptions({
+      brand: data.availableFilters.brand.map(brand => brand.name),
+      city: data.availableFilters.city.map(city => city.name),
+      model: data.availableFilters.model.map(model => model.name),
+      version: data.availableFilters.version.map(version => version.name),
+      year: data.availableFilters.year.map(year => year.name),
+    })
+    setFilteredProducts(data.items)
+  }
+
+  const onFilterProducts = (list: { [key: string]: any }[], key: string, value: any) => setFilteredProducts(list.filter(product => product[key].includes(value)))
 
   const handleToggleAccordion = (id: string | number) => {
     setActiveAccordion(activeAccordion === id ? '' : id)
@@ -80,33 +118,49 @@ const Home = () => {
           <h1>Karvi Challenge</h1>
         </div>
         <div className={homeStyles['filters']}>
-          {Object.keys(filterOptions).map((key, i) => (
-            <Accordion id={key} key={i} handleToggle={handleToggleAccordion} isOpen={activeAccordion === key}>
-              <Accordion.Header>{key}</Accordion.Header>
-              <Accordion.Body items={filterOptions[key]} />
-            </Accordion>
-          ))}
+          <div className={homeStyles['filters-container']}>
+            {Object.keys(filterOptions).map((key, i) => (
+              <Accordion id={key} key={i} handleToggle={handleToggleAccordion} isOpen={activeAccordion === key} {...(!!appliedFilters[key] && { className: 'd-none' })}>
+                <Accordion.Header>{key}</Accordion.Header>
+                <Accordion.Body>
+                  {filterOptions[key].map((value, i) => (
+                    <p key={i} onClick={() => handleFilterClick(key, value)}>
+                      {value}
+                    </p>
+                  ))}
+                </Accordion.Body>
+              </Accordion>
+            ))}
+          </div>
         </div>
         <div className={homeStyles['results-container']}>
           <div className={homeStyles['applied-filters-container']}>
             <div className={homeStyles['applied-filters']}>
-              {Object.keys(appliedFilters).map((key, i) => (
-                <Chip key={i}>{appliedFilters[key]}</Chip>
-              ))}
+              {Object.keys(appliedFilters).map(
+                (key, i) =>
+                  !!appliedFilters[key] && (
+                    <Chip key={i} onClose={() => handleRemoveFilter(key)}>
+                      {appliedFilters[key]}
+                    </Chip>
+                  )
+              )}
             </div>
-            <Button buttonType='link' title='Limpiar Filtros'>
+            <Button buttonType='link' title='Limpiar Filtros' onClick={() => handleResetFilters()}>
               <TrashIcon width={20} height={20} /> Limpiar Filtros
             </Button>
           </div>
           <div className={homeStyles['counter-and-sorting']}>
-            <div className={homeStyles['counter']}>{data.totalCount.toLocaleString()} Carros encontrados</div>
+            <div className={homeStyles['counter']}>{filteredProducts.length.toLocaleString()} Carros encontrados</div>
             <div className={homeStyles['sorting']}>
-              <Button buttonType='link'> <Arrows width={20} height={20} /> {sorting.text}</Button>
+              <Button buttonType='link'>
+                {' '}
+                <Arrows width={20} height={20} /> {sorting.text}
+              </Button>
             </div>
           </div>
           <div className={homeStyles['results']}>
-            {data &&
-              data?.items?.map((item: { [key: string]: any }, i: number) => {
+            {filteredProducts &&
+              filteredProducts.map((item: { [key: string]: any }, i: number) => {
                 const { id, city, state, year, brand, model, version, price, mileage, image } = item
                 return <ProductCard key={i} productId={id} {...{ city, state, year, brand, model, version, price, mileage, image }} />
               })}
@@ -118,99 +172,3 @@ const Home = () => {
 }
 
 export default Home
-
-// import Image from 'next/image'
-
-// export default function Home() {
-//   return (
-//     <main className={styles.main}>
-//       <div className={styles.description}>
-//         <p>
-//           Get started by editing&nbsp;
-//           <code className={styles.code}>src/app/page.tsx</code>
-//         </p>
-//         <div>
-//           <a
-//             href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//             target="_blank"
-//             rel="noopener noreferrer"
-//           >
-//             By{' '}
-//             <Image
-//               src="/vercel.svg"
-//               alt="Vercel Logo"
-//               className={styles.vercelLogo}
-//               width={100}
-//               height={24}
-//               priority
-//             />
-//           </a>
-//         </div>
-//       </div>
-
-//       <div className={styles.center}>
-//         <Image
-//           className={styles.logo}
-//           src="/next.svg"
-//           alt="Next.js Logo"
-//           width={180}
-//           height={37}
-//           priority
-//         />
-//       </div>
-
-//       <div className={styles.grid}>
-//         <a
-//           href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           className={styles.card}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <h2>
-//             Docs <span>-&gt;</span>
-//           </h2>
-//           <p>Find in-depth information about Next.js features and API.</p>
-//         </a>
-
-//         <a
-//           href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           className={styles.card}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <h2>
-//             Learn <span>-&gt;</span>
-//           </h2>
-//           <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-//         </a>
-
-//         <a
-//           href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           className={styles.card}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <h2>
-//             Templates <span>-&gt;</span>
-//           </h2>
-//           <p>Explore the Next.js 13 playground.</p>
-//         </a>
-
-//         <a
-//           href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-//           className={styles.card}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//         >
-//           <h2>
-//             Deploy <span>-&gt;</span>
-//           </h2>
-//           <p>
-//             Instantly deploy your Next.js site to a shareable URL with Vercel.
-//           </p>
-//         </a>
-//       </div>
-//
-//   )
-// }
-
