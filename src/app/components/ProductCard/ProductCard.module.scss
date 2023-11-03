@@ -4,17 +4,18 @@
 
 .product {
   width: 100%;
-  max-width: 296px;
 
   .product-card {
     display: flex;
-    flex-direction: column;
     padding: 8px;
     background-color: var(--white);
     border-radius: 12px;
     box-shadow: var(--shadow-xl);
     width: 100%;
     height: 100%;
+    @media(min-width: 1024px) {
+      flex-direction: column;
+    }
 
     &-header {
       position: relative;

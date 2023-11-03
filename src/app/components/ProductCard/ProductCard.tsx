@@ -31,31 +31,33 @@ export const ProductCard = ({ className, productId, image, year, mileage, brand,
             <LikeIcon width={20} height={20} />
           </Button>
         </div>
-        <div className={cardStyles['product-card-body']}>
-            <div className={cardStyles['badges']}>
-              <Badge>{year}</Badge>
-              <Badge>{mileage?.toLocaleString('es-Ar', { style: 'unit', unit: 'kilometer' })}</Badge>
-            </div>
-          <div className={cardStyles['product-info']}>
-            <div className={cardStyles['product-info-header']}>
-              <h4>
-                {brand} {model}
-              </h4>
-              <p>{version}</p>
-            </div>
-            <div className={cardStyles['product-info-footer']}>
-              <p className={cardStyles['price']}>{price?.toLocaleString('es-Ar', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</p>
-              <p className={cardStyles['location']}>
-                {city}, {state}
-              </p>
+        <div className={cardStyles['product-card-content']}>
+          <div className={cardStyles['product-card-body']}>
+              <div className={cardStyles['badges']}>
+                <Badge>{year}</Badge>
+                <Badge>{mileage?.toLocaleString('es-Ar', { style: 'unit', unit: 'kilometer' })}</Badge>
+              </div>
+            <div className={cardStyles['product-info']}>
+              <div className={cardStyles['product-info-header']}>
+                <h4>
+                  {brand} {model}
+                </h4>
+                <p>{version}</p>
+              </div>
+              <div className={cardStyles['product-info-footer']}>
+                <p className={cardStyles['price']}>{price?.toLocaleString('es-Ar', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 })}</p>
+                <p className={cardStyles['location']}>
+                  {city}, {state}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-        <div className={cardStyles['product-card-footer']}>
-          <Button buttonType='primary'>
-            <CalculatorIcon width={20} height={20} />
-            Simular parcelas
-          </Button>
+          <div className={cardStyles['product-card-footer']}>
+            <Button buttonType='primary'>
+              <CalculatorIcon width={20} height={20} />
+              Simular parcelas
+            </Button>
+          </div>
         </div>
       </article>
     </Wrapper>
