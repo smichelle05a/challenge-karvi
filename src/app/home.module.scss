@@ -3,32 +3,46 @@
     display: grid;
     gap: 16px;
     grid-template-columns: repeat(4, 1fr);
-      @media (min-width: 720px) {
+      @media (min-width: 768px) {
         gap: 24px;
       }
 
     .title {
-      grid-column: 1 / -1;
+      grid-column: span 4;
     }
 
     .filters {
-      grid-column: 1 / span 1;
-      display: flex;
-      flex-direction: column;
-      flex-wrap: wrap;
-      width: 100%;
+      display: none;
+      @media (min-width: 1024px) {
+        display: block;
+        grid-column: span 1;
+      }
+      &-container {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        width: 100%;
+        position: sticky;
+        top: 16px;
+        @media (min-width: 768px) {
+          top: 24px;
+        }
+      }
     }
 
     .results-container {
-      grid-column: 2 / -1;
       display: flex;
       flex-direction: column;
       gap: 24px;
+      grid-column: span 4;
+
+      @media (min-width: 768px) {
+        grid-column: span 3
+      }
 
       .applied-filters {
         display: flex;
         gap: 8px;
-        max-width: 720px;
         flex-wrap: wrap;
 
         &-container {
@@ -44,10 +58,12 @@
 
       .results {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
         gap: 16px;
-        @media (min-width: 720px) {
+        @media (min-width: 768px) {
           gap: 24px;
+        }
+        @media (min-width: 1024px) {
+          grid-template-columns: repeat(3, 1fr);
         }
       }
     }
